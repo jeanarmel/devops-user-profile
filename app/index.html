@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap&subset=latin"
+            rel="stylesheet"
+        />
+        <title>Developing with Docker</title>
+        <style>
+            :root {
+                --background: #e7e6c1;
+                --radius: 0.5rem;
+                --primary: #0e172b;
+                --link-hover: #18233b;
+                --muted-foreground: oklch(0.554 0.046 257.417);
+            }
+
+            /* Reset default margins */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: "Poppins", sans-serif;
+                background-color: var(--background);
+                display: flex;
+                height: 100vh;
+            }
+
+            #container {
+                display: none;
+            }
+            #container-edit {
+                display: none;
+            }
+
+            .container {
+                width: 800px;
+                margin: auto;
+            }
+
+            .container h1 {
+                margin-bottom: 10px;
+            }
+
+            .main {
+                display: flex;
+                flex-direction: column;
+                row-gap: 20px;
+            }
+
+            .main img {
+                width: 200px;
+                height: 200px;
+                border-radius: 50%;
+                object-fit: cover;
+                object-position: center;
+                border: 5px solid white;
+                box-shadow: 0 4px 2px rgba(0, 0, 0, 0.1);
+            }
+
+            .field span {
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .field input {
+                border: 1px solid #c7c7c7;
+                width: 300px;
+                padding: 10px;
+                outline: none;
+                border-radius: 5px;
+                font-size: medium;
+                transition: border-color 0.3s ease-in-out;
+            }
+            .field input:focus {
+                border-color: teal;
+            }
+
+            .btn-primary {
+                font-family: "Poppins", sans-serif;
+                width: 150px;
+                padding: 10px 18px;
+                border: none;
+                border-radius: 7px;
+                color: whitesmoke;
+                background-color: var(--primary);
+                font-weight: 300;
+                cursor: pointer;
+                transition:
+                    background-color 0.3s ease-in-out,
+                    transform 0.2s ease;
+            }
+            .btn-primary:hover {
+                background-color: var(--link-hover);
+            }
+            .btn-primary:active {
+                transform: scale(0.97);
+            }
+
+            .btn-outline {
+                font-family: "Poppins", sans-serif;
+                width: 150px;
+                padding: 10px 18px;
+                border: 1px solid #c7c7c7;
+                border-radius: 7px;
+                color: black;
+                background-color: #eeeeee;
+                font-weight: 300;
+                cursor: pointer;
+                transition:
+                    background-color 0.3s ease-in-out,
+                    transform 0.2s ease;
+            }
+            .btn-outline:hover {
+                background-color: #dbdbdb;
+                border: 1px solid #cdcdcd;
+            }
+            .btn-outline:active {
+                transform: scale(0.97);
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container" class="container">
+            <h1 class="page-title">User Profile</h1>
+            <div class="main">
+                <img src="profile-picture" alt="user-profile" />
+
+                <div>
+                    <span>Name: </span>
+                    <h3 id="name">John Doe</h3>
+                </div>
+
+                <div>
+                    <span>Email: </span>
+                    <h3 id="email">john.doe@example.com</h3>
+                </div>
+
+                <div>
+                    <span>Interests: </span>
+                    <h3 id="interests">Coding</h3>
+                </div>
+
+                <button class="btn-primary" onclick="updateProfile()">
+                    Edit Profile
+                </button>
+            </div>
+        </div>
+
+        <div id="container-edit" class="container">
+            <h1 class="page-title">User Profile</h1>
+            <div class="main">
+                <img src="profile-picture" alt="user-profile" />
+
+                <div class="field">
+                    <span>Name: </span>
+                    <label for="input-name"></label>
+                    <input type="text" id="input-name" value="John Doe" />
+                </div>
+
+                <div class="field">
+                    <span>Email: </span>
+                    <label for="input-email"></label>
+                    <input
+                        type="email"
+                        id="input-email"
+                        value="john.doe@example.com"
+                    />
+                </div>
+
+                <div class="field">
+                    <span>Interests: </span>
+                    <label for="input-interests"></label>
+                    <input type="text" id="input-interests" value="coding" />
+                </div>
+
+                <button
+                    class="btn-outline"
+                    onclick="handleUpdateProfileRequest()"
+                >
+                    Update Profile
+                </button>
+            </div>
+        </div>
+
+        <script>
+            (async function init() {
+                const response = await fetch(
+                    "http://localhost:3000/get-profile",
+                );
+                console.log("response", response);
+                const user = await response.json();
+                console.log(JSON.stringify(user));
+
+                document.getElementById("name").textContent = user.name
+                    ? user.name
+                    : "John Doe";
+                document.getElementById("email").textContent = user.email
+                    ? user.email
+                    : "john.doe@example.com";
+                document.getElementById("interests").textContent =
+                    user.interests ? user.interests : "Coding";
+
+                const cont = document.getElementById("container");
+                cont.style.display = "block";
+            })();
+
+            async function handleUpdateProfileRequest() {
+                const contEdit = document.getElementById("container-edit");
+                const cont = document.getElementById("container");
+
+                const payload = {
+                    name: document.getElementById("input-name").value,
+                    email: document.getElementById("input-email").value,
+                    interests: document.getElementById("input-interests").value,
+                };
+
+                const response = await fetch(
+                    "http://localhost:3000/update-profile",
+                    {
+                        method: "POST",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(payload),
+                    },
+                );
+                const jsonResponse = await response.json();
+
+                document.getElementById("name").textContent = jsonResponse.name;
+                document.getElementById("email").textContent =
+                    jsonResponse.email;
+                document.getElementById("interests").textContent =
+                    jsonResponse.interests;
+
+                cont.style.display = "block";
+                contEdit.style.display = "none";
+            }
+
+            function updateProfile() {
+                const contEdit = document.getElementById("container-edit");
+                const cont = document.getElementById("container");
+
+                document.getElementById("input-name").value =
+                    document.getElementById("name").textContent;
+                document.getElementById("input-email").value =
+                    document.getElementById("email").textContent;
+                document.getElementById("input-interests").value =
+                    document.getElementById("interests").textContent;
+
+                cont.style.display = "none";
+                contEdit.style.display = "block";
+            }
+        </script>
+    </body>
+</html>
