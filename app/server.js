@@ -13,7 +13,7 @@ const databaseName = "my-db";
 // use when starting application locally
 //const mongoUrlLocal = "mongodb://admin:password@localhost:27017";
 // use when starting application as docker container
-const mongoUrlDocker = "mongodb://admin:password@mongodb";
+const mongoUrlDocker = "mongodb://username:password@mongodb-service"; // mongodb-service
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
@@ -23,6 +23,30 @@ app.get('/profile-picture', (req, res) => {
     let img = fs.readFileSync(path.join(__dirname, "images/profile-avatar.png"));
     res.writeHead(200, { 'Content-Type': 'image/png' });
     res.end(img, 'binary');
+});
+
+// HEALTH CHECK - Test de connexion MongoDB
+app.get('/health', async (req, res) => {
+    const client = new MongoClient(mongoUrlDocker);
+
+    try {
+        await client.connect();
+        await client.db(databaseName).command({ ping: 1 });
+
+        res.status(200).send({
+            status: "ok",
+            database: "connected",
+            timestamp: new Date().toISOString()
+        });
+    } catch (err) {
+        res.status(503).send({
+            status: "error",
+            database: "disconnected",
+            message: err.message
+        });
+    } finally {
+        await client.close();
+    }
 });
 
 // GET PROFILE
